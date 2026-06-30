@@ -70,6 +70,8 @@ USB HID device
 
 **Output protocols** are each a self-contained sub-package (`output/crsf`, `output/sbus`, `output/ppm`). Each implements a `Run(ctx, channels func() [32]float64)` pattern — it owns its goroutine and exits when ctx is cancelled. `output.Manager.SetConfig()` stops the previous output goroutine and starts a new one atomically.
 
+**Failsafe is owned by mapping rules, not output config.** Each `mapping.Rule` has a `Failsafe float64` field (normalized -1.0..1.0) set per channel in the Mapping UI. `Engine.Failsafe()` builds the `[32]float64` array from current rules (channels with no rule → 0). `output.Manager.SetConfig()` calls `engine.Failsafe()` to derive the array at output start time. `output.Config` has no failsafe field.
+
 **PPM uses `aplay` subprocess.** `output/ppm` generates S16_LE mono PCM at 48 kHz and pipes it to `aplay` stdin. `alsa-utils` must be present in the runtime image (it is, via the Dockerfile). The 20 ms frame contains 8 channels; channels 9–32 are not transmitted over PPM.
 
 **SBUS requires hardware signal inversion.** The serial port outputs non-inverted 8E2 at 100000 baud; a transistor or 74HC04 inverter is needed between TX and the receiver.
