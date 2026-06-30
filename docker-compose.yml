@@ -1,0 +1,25 @@
+services:
+  simlink:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - /dev/input:/dev/input
+      - /dev/bus/usb:/dev/bus/usb
+      - /run/udev:/run/udev:ro
+      - ./data:/data
+    device_cgroup_rules:
+      - "c 189:* rmw"   # USB devices (all ports/hubs)
+      - "c 116:* rmw"   # ALSA sound devices (/dev/snd/*)
+      - "c 188:* rmw"   # USB serial (ttyUSB*)
+      - "c 166:* rmw"   # USB ACM serial (ttyACM*)
+      - "c 13:* r"      # Input event devices (/dev/input/event*)
+    cap_add:
+      - SYS_RAWIO       # Required for direct ALSA PCM access
+    environment:
+      - DATA_DIR=/data
+      - LISTEN_ADDR=:8080
+      - GIN_MODE=release
+    restart: unless-stopped

@@ -1,0 +1,5 @@
+backend/static/
+data/
+node_modules/
+dist/
+*.db
