@@ -2,14 +2,11 @@ import { useEffect, useState } from 'react'
 import type { OutputConfig } from '../hooks/useSimLink'
 import { apiFetch } from '../hooks/useSimLink'
 
-const NUM_CHANNELS = 32
-
 export default function Output() {
   const [cfg, setCfg] = useState<OutputConfig>({
     protocol: '',
     serial_port: '',
     audio_device: 'default',
-    failsafe: new Array(NUM_CHANNELS).fill(0),
     enabled: false,
   })
   const [serialPorts, setSerialPorts] = useState<string[]>([])
@@ -38,12 +35,6 @@ export default function Output() {
       setSaving(false)
       setTimeout(() => setStatus(''), 2000)
     }
-  }
-
-  const setFailsafe = (ch: number, v: number) => {
-    const fs = [...cfg.failsafe]
-    fs[ch] = v
-    setCfg({ ...cfg, failsafe: fs })
   }
 
   return (
@@ -138,33 +129,6 @@ export default function Output() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-        <h2 className="text-sm font-semibold mb-4 text-gray-600 dark:text-gray-400">
-          Failsafe Values
-        </h2>
-        <p className="text-xs text-gray-400 mb-4">
-          Values sent when the link is lost. Drag sliders or enter values (−1 to 1).
-        </p>
-        <div className="space-y-2">
-          {Array.from({ length: NUM_CHANNELS }, (_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="text-xs w-8 text-right text-gray-500">CH{i + 1}</span>
-              <input
-                type="range"
-                min="-1"
-                max="1"
-                step="0.01"
-                value={cfg.failsafe[i] ?? 0}
-                onChange={(e) => setFailsafe(i, parseFloat(e.target.value))}
-                className="flex-1"
-              />
-              <span className="text-xs w-12 tabular-nums text-right">
-                {(cfg.failsafe[i] ?? 0).toFixed(2)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

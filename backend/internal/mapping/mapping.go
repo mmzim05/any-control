@@ -20,11 +20,12 @@ type Transform struct {
 }
 
 type Rule struct {
-	DeviceID   string           `json:"device_id"`
-	Code       uint16           `json:"code"`
-	EventType  input.EventType  `json:"event_type"`
-	Channel    int              `json:"channel"` // 0-indexed, 0–31
-	Transform  Transform        `json:"transform"`
+	DeviceID  string          `json:"device_id"`
+	Code      uint16          `json:"code"`
+	EventType input.EventType `json:"event_type"`
+	Channel   int             `json:"channel"` // 0-indexed, 0–31
+	Transform Transform       `json:"transform"`
+	Failsafe  float64         `json:"failsafe"` // sent on link loss, normalized -1.0..1.0
 }
 
 type channelState struct {
@@ -117,6 +118,19 @@ func (e *Engine) Process(ev input.Event) {
 func (e *Engine) Channels() [MaxChannels]float64 {
 	s := (*channelState)(atomic.LoadPointer(&e.state))
 	return s.values
+}
+
+// Failsafe builds a failsafe array from current rules. Channels with no rule are 0.
+func (e *Engine) Failsafe() [MaxChannels]float64 {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+	var fs [MaxChannels]float64
+	for _, r := range e.rules {
+		if r.Channel >= 0 && r.Channel < MaxChannels {
+			fs[r.Channel] = r.Failsafe
+		}
+	}
+	return fs
 }
 
 func (e *Engine) normalizeAxis(deviceID string, code uint16, value int32) float64 {

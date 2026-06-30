@@ -21,11 +21,10 @@ const (
 )
 
 type Config struct {
-	Protocol    Protocol   `json:"protocol"`
-	SerialPort  string     `json:"serial_port"`
-	AudioDevice string     `json:"audio_device"`
-	Failsafe    [32]float64 `json:"failsafe"` // normalized [-1.0, 1.0]
-	Enabled     bool       `json:"enabled"`
+	Protocol    Protocol `json:"protocol"`
+	SerialPort  string   `json:"serial_port"`
+	AudioDevice string   `json:"audio_device"`
+	Enabled     bool     `json:"enabled"`
 }
 
 type Manager struct {
@@ -67,11 +66,13 @@ func (m *Manager) SetConfig(cfg Config) {
 		return m.engine.Channels()
 	}
 
+	failsafeNorm := m.engine.Failsafe()
+
 	switch cfg.Protocol {
 	case ProtocolCRSF:
 		var fs [16]uint16
 		for i := 0; i < 16; i++ {
-			v := cfg.Failsafe[i]
+			v := failsafeNorm[i]
 			fs[i] = uint16((v+1.0)/2.0*float64(1811-172) + 172)
 		}
 		o := crsf.New(cfg.SerialPort, fs)
@@ -83,7 +84,7 @@ func (m *Manager) SetConfig(cfg Config) {
 	case ProtocolSBUS:
 		var fs [16]uint16
 		for i := 0; i < 16; i++ {
-			v := cfg.Failsafe[i]
+			v := failsafeNorm[i]
 			fs[i] = uint16((v+1.0)/2.0*float64(1811-172) + 172)
 		}
 		o := sbus.New(cfg.SerialPort, fs)

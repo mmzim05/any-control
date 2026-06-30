@@ -100,12 +100,18 @@ export default function Mapping() {
       event_type: selected.eventType,
       channel: ch,
       transform: defaultTransform(),
+      failsafe: 0,
     }
     setRules([...existing, rule])
   }
 
   function updateTransform(ch: number, t: Transform) {
     setRules(rules.map((r) => (r.channel === ch ? { ...r, transform: t } : r)))
+  }
+
+  function updateFailsafe(ch: number, v: number) {
+    const clamped = Math.max(-1, Math.min(1, isNaN(v) ? 0 : v))
+    setRules(rules.map((r) => (r.channel === ch ? { ...r, failsafe: clamped } : r)))
   }
 
   function clearChannel(ch: number) {
@@ -243,10 +249,25 @@ export default function Mapping() {
                     )}
                   </div>
                   {rule && (
-                    <TransformEditor
-                      transform={rule.transform}
-                      onChange={(t) => updateTransform(i, t)}
-                    />
+                    <>
+                      <TransformEditor
+                        transform={rule.transform}
+                        onChange={(t) => updateTransform(i, t)}
+                      />
+                      <div className="flex items-center gap-2 mt-2">
+                        <label className="text-xs text-gray-500 shrink-0">Failsafe</label>
+                        <input
+                          type="number"
+                          min="-1"
+                          max="1"
+                          step="0.01"
+                          value={rule.failsafe}
+                          onChange={(e) => updateFailsafe(i, parseFloat(e.target.value))}
+                          className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-transparent text-xs w-24 tabular-nums"
+                        />
+                        <span className="text-xs text-gray-400">−1 to 1</span>
+                      </div>
+                    </>
                   )}
                 </div>
               )

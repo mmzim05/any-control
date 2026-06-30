@@ -26,13 +26,13 @@ export type MappingRule = {
   event_type: 0 | 1 // 0=axis 1=button
   channel: number
   transform: Transform
+  failsafe: number // sent on link loss, -1.0..1.0; unassigned channels default to 0
 }
 
 export type OutputConfig = {
   protocol: 'crsf' | 'sbus' | 'ppm' | ''
   serial_port: string
   audio_device: string
-  failsafe: number[]
   enabled: boolean
 }
 
@@ -73,7 +73,6 @@ export function useSimLink() {
     protocol: '',
     serial_port: '',
     audio_device: 'default',
-    failsafe: new Array(32).fill(0),
     enabled: false,
   })
   const [connected, setConnected] = useState(false)
